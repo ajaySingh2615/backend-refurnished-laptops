@@ -1,0 +1,31 @@
+import express from "express";
+import cors from "cors";
+import healthRoutes from "./modules/health/health.routes.js";
+import notFoundHandler from "./common/middleware/not-found.middleware.js";
+import errorHandler from "./common/middleware/error.middleware.js";
+
+function buildCorsOptions() {
+  const raw = process.env.CORS_ORIGIN ?? "";
+  const origins = raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  return {
+    origin: origins.length ? origins : false,
+    credentials: true,
+  };
+}
+
+const app = express();
+
+app.use(cors(buildCorsOptions()));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+app.use(healthRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+export default app;
