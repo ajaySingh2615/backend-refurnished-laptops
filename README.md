@@ -67,14 +67,14 @@ Example response:
 
 ## Scripts
 
-| Script                   | Description                                  |
-| ------------------------ | -------------------------------------------- |
-| `npm run dev`            | Start with `node --watch`                    |
-| `npm start`              | Start once                                   |
-| `npm run db:generate`    | Drizzle SQL from schema                      |
+| Script                | Description                              |
+| --------------------- | ---------------------------------------- |
+| `npm run dev`         | Start with `node --watch`                |
+| `npm start`           | Start once                               |
+| `npm run db:generate` | Drizzle SQL from schema                  |
 | `npm run db:migrate`  | Apply migrations (`drizzle-kit migrate`) |
-| `npm run db:studio`   | Drizzle Studio (optional)              |
-| `npm run format`         | Prettier write                               |
+| `npm run db:studio`   | Drizzle Studio (optional)                |
+| `npm run format`      | Prettier write                           |
 
 ## Layout
 
