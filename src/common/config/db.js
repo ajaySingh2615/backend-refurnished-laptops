@@ -11,6 +11,11 @@ if (!connectionString) {
 export const pool = new pg.Pool({
   connectionString,
   max: 10,
+  // Local Docker Postgres does not use TLS; explicit ssl avoids odd hangs on some setups
+  ssl:
+    process.env.DATABASE_SSL === "true"
+      ? { rejectUnauthorized: process.env.NODE_ENV === "production" }
+      : false,
 });
 
 export const db = drizzle(pool, { schema });

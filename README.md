@@ -67,14 +67,14 @@ Example response:
 
 ## Scripts
 
-| Script                | Description               |
-| --------------------- | ------------------------- |
-| `npm run dev`         | Start with `node --watch` |
-| `npm start`           | Start once                |
-| `npm run db:generate` | Drizzle SQL from schema   |
-| `npm run db:migrate`  | Apply migrations          |
-| `npm run db:studio`   | Drizzle Studio (optional) |
-| `npm run format`      | Prettier write            |
+| Script                   | Description                                  |
+| ------------------------ | -------------------------------------------- |
+| `npm run dev`            | Start with `node --watch`                    |
+| `npm start`              | Start once                                   |
+| `npm run db:generate`    | Drizzle SQL from schema                      |
+| `npm run db:migrate`  | Apply migrations (`drizzle-kit migrate`) |
+| `npm run db:studio`   | Drizzle Studio (optional)              |
+| `npm run format`         | Prettier write                               |
 
 ## Layout
 
@@ -84,6 +84,12 @@ Example response:
 - `src/db/schema/` — Drizzle table definitions
 - `src/modules/` — feature modules (e.g. `health`)
 - `drizzle/` — generated SQL migrations (committed)
+
+## Troubleshooting migrations
+
+- Run **`npm run db:migrate`** from the **`backend/`** folder so **`.env`** is loaded (`drizzle.config.js` uses `dotenv`).
+- If **`password authentication failed`** or odd errors: another Postgres may be on port **5432**. This project maps Docker to host port **5433** — use **`DATABASE_URL`** with **`127.0.0.1:5433`** (see `.env.example`).
+- Ensure Docker is running (`docker compose ps`) and **`?sslmode=disable`** for local Postgres if needed.
 
 ## Security
 
