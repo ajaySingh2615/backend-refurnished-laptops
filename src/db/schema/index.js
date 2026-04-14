@@ -11,3 +11,5 @@ export { orders, orderItems, ordersRelations, orderItemsRelations } from "./orde
 export { payments, paymentsRelations } from "./payments.js";
 export { invoices, invoicesRelations } from "./invoices.js";
 export { shopSettings } from "./shop_settings.js";
+export { userSessions, userSessionsRelations } from "./user_sessions.js";
+export { otpVerifications } from "./otp_verifications.js";

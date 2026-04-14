@@ -91,6 +91,15 @@ CREATE TABLE "orders" (
 	CONSTRAINT "orders_order_number_unique" UNIQUE("order_number")
 );
 --> statement-breakpoint
+CREATE TABLE "otp_verifications" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"phone" varchar(20) NOT NULL,
+	"otp_hash" text NOT NULL,
+	"attempts" integer DEFAULT 0 NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "payments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"order_id" uuid NOT NULL,
@@ -186,20 +195,33 @@ CREATE TABLE "tax_rates" (
 	"is_active" boolean DEFAULT true NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "user_sessions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" uuid NOT NULL,
+	"refresh_token_hash" text NOT NULL,
+	"device_info" varchar(200),
+	"ip_address" varchar(45),
+	"last_active_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "users" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(100) NOT NULL,
-	"email" varchar(255) NOT NULL,
-	"password_hash" text NOT NULL,
+	"email" varchar(255),
+	"phone" varchar(20),
+	"google_id" varchar(100),
+	"avatar_url" text,
+	"auth_provider" varchar(20) DEFAULT 'phone' NOT NULL,
 	"role" varchar(20) DEFAULT 'customer' NOT NULL,
-	"is_verified" boolean DEFAULT false NOT NULL,
-	"verification_token" text,
-	"refresh_token" text,
-	"reset_password_token" text,
-	"reset_password_expires" timestamp with time zone,
+	"is_verified" boolean DEFAULT true NOT NULL,
+	"is_banned" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "users_email_unique" UNIQUE("email")
+	CONSTRAINT "users_email_unique" UNIQUE("email"),
+	CONSTRAINT "users_phone_unique" UNIQUE("phone"),
+	CONSTRAINT "users_google_id_unique" UNIQUE("google_id")
 );
 --> statement-breakpoint
 ALTER TABLE "addresses" ADD CONSTRAINT "addresses_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -215,4 +237,5 @@ ALTER TABLE "orders" ADD CONSTRAINT "orders_shipping_method_id_shipping_methods_
 ALTER TABLE "payments" ADD CONSTRAINT "payments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_images" ADD CONSTRAINT "product_images_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_variants" ADD CONSTRAINT "product_variants_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "products" ADD CONSTRAINT "products_category_id_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."categories"("id") ON DELETE restrict ON UPDATE no action;
+ALTER TABLE "products" ADD CONSTRAINT "products_category_id_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."categories"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
