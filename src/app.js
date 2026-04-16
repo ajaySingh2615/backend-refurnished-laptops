@@ -6,6 +6,7 @@ import shopSettingsRoutes from "./modules/shop-settings/shop-settings.routes.js"
 import categoriesRoutes from "./modules/categories/categories.routes.js";
 import productsRoutes from "./modules/products/products.routes.js";
 import inventoryRoutes from "./modules/inventory/inventory.routes.js";
+import mediaRoutes from "./modules/media/media.routes.js";
 import notFoundHandler from "./common/middleware/not-found.middleware.js";
 import errorHandler from "./common/middleware/error.middleware.js";
 
@@ -34,6 +35,7 @@ app.use(shopSettingsRoutes);
 app.use(categoriesRoutes);
 app.use(productsRoutes);
 app.use(inventoryRoutes);
+app.use(mediaRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -1,0 +1,1 @@
+ALTER TABLE "product_images" ADD COLUMN "cloudinary_public_id" varchar(255);
