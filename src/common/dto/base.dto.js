@@ -12,7 +12,12 @@ export function validateDto(schema, source = "body") {
       throw ApiError.badRequest(messages);
     }
 
-    req[source] = value;
+    if (source === "query") {
+      req.validatedQuery = value;
+    } else {
+      req[source] = value;
+    }
+
     next();
   };
 }
