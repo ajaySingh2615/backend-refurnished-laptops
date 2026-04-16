@@ -3,6 +3,7 @@ import cors from "cors";
 import healthRoutes from "./modules/health/health.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import shopSettingsRoutes from "./modules/shop-settings/shop-settings.routes.js";
+import categoriesRoutes from "./modules/categories/categories.routes.js";
 import notFoundHandler from "./common/middleware/not-found.middleware.js";
 import errorHandler from "./common/middleware/error.middleware.js";
 
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(healthRoutes);
 app.use(authRoutes);
 app.use(shopSettingsRoutes);
+app.use(categoriesRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
