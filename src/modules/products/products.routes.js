@@ -33,6 +33,13 @@ router.get(
   asyncHandler(ctrl.adminListProducts)
 );
 
+router.get(
+  "/api/admin/products/:id",
+  asyncHandler(authenticate),
+  asyncHandler(requireAdmin),
+  asyncHandler(ctrl.adminGetProduct)
+);
+
 router.post(
   "/api/admin/products",
   asyncHandler(authenticate),

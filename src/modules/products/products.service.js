@@ -80,11 +80,39 @@ export async function listProducts(query) {
     }
   }
 
-  if (brand) conditions.push(ilike(products.brand, brand));
+  if (brand) {
+    const b = String(brand).trim();
+    const pattern = b.includes("%") ? b : `%${b}%`;
+    conditions.push(ilike(products.brand, pattern));
+  }
   if (type) conditions.push(eq(products.type, type));
-  if (processor) conditions.push(ilike(products.processor, `%${processor}%`));
-  if (ram) conditions.push(eq(products.ram, ram));
-  if (os) conditions.push(ilike(products.os, `%${os}%`));
+  if (processor) {
+    const p = String(processor).trim();
+    if (p) conditions.push(ilike(products.processor, `%${p}%`));
+  }
+  /**
+   * RAM was stored with strict `eq` but catalog values differ by spacing ("8 GB" vs "8GB").
+   * Match normalized forms: trim, case-insensitive, ignore spaces for comparison.
+   */
+  if (ram) {
+    const r = String(ram).trim();
+    const compact = r.replace(/\s+/g, "").toLowerCase();
+    if (r) {
+      conditions.push(
+        sql`(
+          ${products.ram} IS NOT NULL
+          AND (
+            lower(trim(${products.ram})) = lower(${r})
+            OR regexp_replace(lower(${products.ram}::text), '\\s+', '', 'g') = ${compact}
+          )
+        )`
+      );
+    }
+  }
+  if (os) {
+    const o = String(os).trim();
+    if (o) conditions.push(ilike(products.os, `%${o}%`));
+  }
   if (featured) conditions.push(eq(products.isFeatured, true));
 
   if (search) {
@@ -219,6 +247,33 @@ export async function getProductBySlug(slug) {
 
 // ── Admin — Products ────────────────────────────────────
 
+/** Full product for admin edit form (includes drafts, variants + images). */
+export async function getAdminProductById(id) {
+  const [product] = await db
+    .select()
+    .from(products)
+    .where(eq(products.id, id))
+    .limit(1);
+
+  if (!product) {
+    throw ApiError.notFound("Product not found");
+  }
+
+  const variants = await db
+    .select()
+    .from(productVariants)
+    .where(eq(productVariants.productId, id))
+    .orderBy(asc(productVariants.sortOrder));
+
+  const images = await db
+    .select()
+    .from(productImages)
+    .where(eq(productImages.productId, id))
+    .orderBy(asc(productImages.sortOrder));
+
+  return { ...product, variants, images };
+}
+
 export async function adminListProducts(query) {
   const { page = 1, limit = 20 } = query;
 
@@ -236,6 +291,7 @@ export async function adminListProducts(query) {
 
   const productIds = rows.map((r) => r.id);
   let variantsMap = new Map();
+  let imagesMap = new Map();
 
   if (productIds.length > 0) {
     const allVariants = await db
@@ -248,11 +304,23 @@ export async function adminListProducts(query) {
       if (!variantsMap.has(v.productId)) variantsMap.set(v.productId, []);
       variantsMap.get(v.productId).push(v);
     }
+
+    const allImages = await db
+      .select()
+      .from(productImages)
+      .where(sql`${productImages.productId} IN ${productIds}`)
+      .orderBy(asc(productImages.sortOrder));
+
+    for (const img of allImages) {
+      if (!imagesMap.has(img.productId)) imagesMap.set(img.productId, []);
+      imagesMap.get(img.productId).push(img);
+    }
   }
 
   const items = rows.map((p) => ({
     ...p,
     variants: variantsMap.get(p.id) || [],
+    images: imagesMap.get(p.id) || [],
   }));
 
   return { items, total, page, limit, totalPages };

@@ -1,6 +1,6 @@
 import { eq, and, asc } from "drizzle-orm";
 import { db } from "../../common/config/db.js";
-import { products, productImages } from "../../db/schema/index.js";
+import { products, productImages, productVariants } from "../../db/schema/index.js";
 import cloudinary from "../../common/config/cloudinary.js";
 import ApiError from "../../common/utils/api-error.js";
 
@@ -18,6 +18,23 @@ async function assertProductExists(productId) {
   return product;
 }
 
+async function assertVariantBelongsToProduct(productId, variantId) {
+  const [row] = await db
+    .select({ id: productVariants.id })
+    .from(productVariants)
+    .where(
+      and(
+        eq(productVariants.id, variantId),
+        eq(productVariants.productId, productId)
+      )
+    )
+    .limit(1);
+
+  if (!row) {
+    throw ApiError.badRequest("Variant does not belong to this product");
+  }
+}
+
 function uploadBuffer(buffer, options) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(options, (err, result) => {
@@ -32,6 +49,12 @@ function uploadBuffer(buffer, options) {
 
 export async function uploadProductImage(productId, file, fields) {
   await assertProductExists(productId);
+
+  let variantId = fields.variantId || null;
+  if (variantId === "" || variantId === undefined) variantId = null;
+  if (variantId) {
+    await assertVariantBelongsToProduct(productId, variantId);
+  }
 
   if (!file) throw ApiError.badRequest("Image file is required");
   if (!ALLOWED_MIME.includes(file.mimetype)) {
@@ -50,6 +73,7 @@ export async function uploadProductImage(productId, file, fields) {
     .insert(productImages)
     .values({
       productId,
+      variantId,
       url: result.secure_url,
       cloudinaryPublicId: result.public_id,
       altText: fields.altText || null,
@@ -65,6 +89,14 @@ export async function uploadProductImage(productId, file, fields) {
 export async function updateProductImage(productId, imageId, data) {
   await assertProductExists(productId);
 
+  const patch = { ...data };
+  if (patch.variantId === "" || patch.variantId === undefined) {
+    patch.variantId = null;
+  }
+  if (patch.variantId) {
+    await assertVariantBelongsToProduct(productId, patch.variantId);
+  }
+
   const [image] = await db
     .select()
     .from(productImages)
@@ -75,7 +107,7 @@ export async function updateProductImage(productId, imageId, data) {
 
   const [updated] = await db
     .update(productImages)
-    .set(data)
+    .set(patch)
     .where(eq(productImages.id, imageId))
     .returning();
 

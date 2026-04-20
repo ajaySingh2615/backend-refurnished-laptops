@@ -7,6 +7,8 @@ export const productImages = pgTable("product_images", {
   productId: uuid("product_id")
     .notNull()
     .references(() => products.id, { onDelete: "cascade" }),
+  /** Optional SKU this photo is for; null = shared gallery for all variants (FK in DB migration). */
+  variantId: uuid("variant_id"),
   url: text("url").notNull(),
   cloudinaryPublicId: varchar("cloudinary_public_id", { length: 255 }),
   altText: varchar("alt_text", { length: 255 }),

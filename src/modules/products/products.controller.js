@@ -20,6 +20,11 @@ export async function adminListProducts(req, res) {
   return ApiResponse.ok(res, "All products", result);
 }
 
+export async function adminGetProduct(req, res) {
+  const product = await productsService.getAdminProductById(req.params.id);
+  return ApiResponse.ok(res, "Product", product);
+}
+
 export async function createProduct(req, res) {
   const product = await productsService.createProduct(req.body);
   return ApiResponse.created(res, "Product created", product);
